@@ -40,6 +40,13 @@ config CELL_TYPE
     default 1 if CELL_TYPE_NMC
     default 2 if CELL_TYPE_LTO
 
+config BMS_SOC_INIT_WHEN_CELLS_APPEAR
+    bool "Initialise SoC when the first cells are seen after boot"
+    help
+      The firmware normally sets its state of charge once at boot from the cell voltages. If the cells
+      only appear later (an emulated chip fed by a simulator, or cells connected after power-up) the
+      SoC would stay at 0. With this option it is set again, once, when the first cells show up.
+
 endmenu
 
 menu "MQTT publisher"

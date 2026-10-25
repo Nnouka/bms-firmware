@@ -53,6 +53,9 @@ int main(void)
     }
 
     bms_soc_reset(&bms, -1);
+#ifdef CONFIG_BMS_SOC_INIT_WHEN_CELLS_APPEAR
+    bool soc_initialised = bms.ic_data.connected_cells > 0;
+#endif
 
     button_init();
 
@@ -62,6 +65,13 @@ int main(void)
         if (err != 0) {
             LOG_ERR("Failed to read data from BMS IC: %d", err);
         }
+
+#ifdef CONFIG_BMS_SOC_INIT_WHEN_CELLS_APPEAR
+        if (!soc_initialised && bms.ic_data.connected_cells > 0) {
+            bms_soc_reset(&bms, -1);
+            soc_initialised = true;
+        }
+#endif
 
         bms_soc_update(&bms);
 
