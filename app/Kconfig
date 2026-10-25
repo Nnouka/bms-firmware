@@ -42,5 +42,42 @@ config CELL_TYPE
 
 endmenu
 
+menu "MQTT publisher"
+
+config BMS_MQTT
+    bool "Publish measurements over MQTT"
+    depends on THINGSET_WIFI && MQTT_LIB && SNTP
+    help
+      Publishes bms/<id>/status, info and meas (docs/mqtt-schema.md of the gateway repository)
+      over Wi-Fi. Broker host, port and device id are ThingSet settings (group Networking).
+
+if BMS_MQTT
+
+config BMS_MQTT_DEFAULT_HOST
+    string "Default broker host or IPv4 address (empty = set it with ThingSet)"
+    default ""
+
+config BMS_MQTT_DEFAULT_PORT
+    int "Default broker port"
+    range 1 65535
+    default 1883
+
+config BMS_MQTT_DEFAULT_DEVICE_ID
+    string "Default device id used in the MQTT topics"
+    default "haske-bms-001"
+
+config BMS_MQTT_PUBLISH_INTERVAL_S
+    int "Seconds between meas messages"
+    range 1 3600
+    default 5
+
+config BMS_MQTT_NTP_SERVER
+    string "NTP server used to timestamp messages"
+    default "pool.ntp.org"
+
+endif # BMS_MQTT
+
+endmenu
+
 # include main Zephyr menu entries from Zephyr root directory
 source "Kconfig.zephyr"

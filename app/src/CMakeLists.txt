@@ -12,3 +12,4 @@ target_sources(app PRIVATE
 )
 
 zephyr_sources_ifdef(CONFIG_SHIELD_UEXT_OLED oled.c)
+target_sources_ifdef(CONFIG_BMS_MQTT app PRIVATE mqtt.c mqtt_payload.c)

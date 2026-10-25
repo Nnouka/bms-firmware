@@ -1,0 +1,83 @@
+/*
+ * Copyright (c) The Libre Solar Project Contributors
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+ * ESP32-DevKitC, Stage 1: the real BMS app on an EMULATED BQ76952 (same idea as native_sim.overlay).
+ *
+ * The board's own &i2c0 (GPIO21/22) is left alone for the real chip later. The emulated chip sits on a
+ * separate emulator bus. UART0 (USB) is the Zephyr shell; ThingSet serial is on UART2 (GPIO16 RX, GPIO17 TX).
+ */
+
+#include <dt-bindings/bms_ic/bq769x2.h>
+
+/ {
+	pcb {
+		compatible = "bms";
+
+		type = "BMS ESP32 DevKit";
+		version-str = "v0.1";
+		version-num = <1>;
+	};
+
+	chosen {
+		thingset,serial = &uart2;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		led1: led_0 {
+			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+		};
+		led2: led_1 {
+			gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		/* the BOOT button: hold 3 s to shut down, as the power button does on the C1 */
+		power_button: button {
+			gpios = <&gpio0 0 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		};
+	};
+
+	aliases {
+		led-red = &led1;
+		led-green = &led2;
+		sw-pwr = &power_button;
+		bms-ic = &bq769x2;
+	};
+
+	/* emulator bus for the simulated chip; replaced by the real &i2c0 in Stage 5 */
+	i2c_emul0: i2c@100 {
+		compatible = "zephyr,i2c-emul-controller";
+		clock-frequency = <I2C_BITRATE_STANDARD>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		#forward-cells = <1>;
+		reg = <0x100 4>;
+		status = "okay";
+
+		bq769x2: bq76952@8 {
+			compatible = "ti,bq769x2-i2c";
+			reg = <0x08>;
+			alert-gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;
+			used-cell-channels = <0xFFFF>;
+			/* all NTCs configured with 18k pull-up */
+			ts1-pin-config = <0x07>;
+			dchg-pin-config = <0x0F>;
+			cell-temp-pins = <BQ769X2_PIN_TS1>;
+			fet-temp-pin = <BQ769X2_PIN_DCHG>;
+			board-max-current = <50>;
+			shunt-resistor-uohm = <500>;
+			status = "okay";
+		};
+	};
+};
+
+&uart2 {
+	status = "okay";
+};
